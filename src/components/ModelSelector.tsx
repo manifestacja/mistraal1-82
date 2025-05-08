@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { MistralModelId } from "@/types/models";
 import { getMistralModels } from "@/services/mistralService";
+import { ChevronDown } from "lucide-react";
 
 interface ModelSelectorProps {
   selectedModel: MistralModelId;
@@ -16,8 +17,9 @@ export default function ModelSelector({ selectedModel, onModelChange }: ModelSel
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <Button variant="ghost" className="h-8 rounded-full border-0 bg-transparent">
+        <Button variant="ghost" className="h-8 rounded-full border-0 bg-transparent flex items-center gap-1">
           {selectedModelName}
+          <ChevronDown size={16} />
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end">
