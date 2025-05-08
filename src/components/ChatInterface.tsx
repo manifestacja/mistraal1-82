@@ -1,4 +1,3 @@
-
 "use client"
 
 import "ios-vibrator-pro-max"
@@ -17,12 +16,16 @@ import {
   Share2,
   ThumbsUp,
   ThumbsDown,
+  Settings,
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Textarea } from "@/components/ui/textarea"
 import { cn } from "@/lib/utils"
+import ModelSelector from "./ModelSelector"
+import { MistralModelId } from "@/types/models"
+import { generateMistralResponse } from "@/services/mistralService"
 
-type ActiveButton = "none" | "add" | "deepSearch" | "think"
+type ActiveButton = "none" | "add" | "deepSearch" | "think" | "settings"
 type MessageType = "user" | "system"
 
 interface Message {
@@ -31,19 +34,7 @@ interface Message {
   type: MessageType
   completed?: boolean
   newSection?: boolean
-}
-
-interface MessageSection {
-  id: string
-  messages: Message[]
-  isNewSection: boolean
-  isActive?: boolean
-  sectionIndex: number
-}
-
-interface StreamingWord {
-  id: number
-  text: string
+  model?: MistralModelId
 }
 
 // Faster word delay for smoother streaming
@@ -70,6 +61,7 @@ export default function ChatInterface() {
   const inputContainerRef = useRef<HTMLDivElement>(null)
   const shouldFocusAfterStreamingRef = useRef(false)
   const mainContainerRef = useRef<HTMLDivElement>(null)
+  const [selectedModel, setSelectedModel] = useState<MistralModelId>("mistral-small-latest")
   // Store selection state
   const selectionStateRef = useRef<{ start: number | null; end: number | null }>({ start: null, end: null })
 
@@ -276,23 +268,17 @@ export default function ChatInterface() {
     })
   }
 
-  const getAIResponse = (userMessage: string) => {
-    const responses = [
-      `That's an interesting perspective. Let me elaborate on that a bit further. When we consider the implications of what you've shared, several key points come to mind. First, it's important to understand the context and how it relates to broader concepts. This allows us to develop a more comprehensive understanding of the situation. Would you like me to explore any specific aspect of this in more detail?`,
-
-      `I appreciate you sharing that. From what I understand, there are multiple layers to consider here. The initial aspect relates to the fundamental principles we're discussing, but there's also a broader context to consider. This reminds me of similar scenarios where the underlying patterns reveal interesting connections. What aspects of this would you like to explore further?`,
-
-      `Thank you for bringing this up. It's a fascinating topic that deserves careful consideration. When we analyze the details you've provided, we can identify several important elements that contribute to our understanding. This kind of discussion often leads to valuable insights and new perspectives. Is there a particular element you'd like me to focus on?`,
-
-      `Your message raises some compelling points. Let's break this down systematically to better understand the various components involved. There are several key factors to consider, each contributing to the overall picture in unique ways. This kind of analysis often reveals interesting patterns and connections that might not be immediately apparent. What specific aspects would you like to delve into?`,
-    ]
-
-    return responses[Math.floor(Math.random() * responses.length)]
+  const generateAIResponse = async (userMessage: string, model: MistralModelId): Promise<string> => {
+    try {
+      const response = await generateMistralResponse(userMessage, model);
+      return response;
+    } catch (error) {
+      console.error("Error generating response:", error);
+      return "Przepraszam, wystąpił błąd podczas generowania odpowiedzi. Proszę spróbować ponownie.";
+    }
   }
 
   const simulateAIResponse = async (userMessage: string) => {
-    const response = getAIResponse(userMessage)
-
     // Create a new message with empty content
     const messageId = Date.now().toString()
     setStreamingMessageId(messageId)
@@ -303,6 +289,7 @@ export default function ChatInterface() {
         id: messageId,
         content: "",
         type: "system",
+        model: selectedModel,
       },
     ])
 
@@ -311,6 +298,9 @@ export default function ChatInterface() {
       // Add vibration when streaming begins
       navigator.vibrate(50)
     }, 200) // 200ms delay to make it distinct from the first vibration
+
+    // Generate response from selected model
+    const response = await generateAIResponse(userMessage, selectedModel)
 
     // Stream the text
     await simulateTextStreaming(response)
@@ -458,6 +448,13 @@ export default function ChatInterface() {
           )}
         </div>
 
+        {/* Display model info for AI messages */}
+        {message.type === "system" && message.model && (
+          <div className="text-xs text-gray-400 px-4 mt-1">
+            Model: {message.model}
+          </div>
+        )}
+
         {/* Message actions */}
         {message.type === "system" && message.completed && (
           <div className="flex items-center gap-2 px-4 mt-1 mb-2">
@@ -502,10 +499,13 @@ export default function ChatInterface() {
 
           <h1 className="text-base font-medium text-gray-800">v0 Chat</h1>
 
-          <Button variant="ghost" size="icon" className="rounded-full h-8 w-8">
-            <PenSquare className="h-5 w-5 text-gray-700" />
-            <span className="sr-only">New Chat</span>
-          </Button>
+          <div className="flex items-center gap-1">
+            <ModelSelector selectedModel={selectedModel} onModelChange={setSelectedModel} />
+            <Button variant="ghost" size="icon" className="rounded-full h-8 w-8">
+              <PenSquare className="h-5 w-5 text-gray-700" />
+              <span className="sr-only">New Chat</span>
+            </Button>
+          </div>
         </div>
       </header>
 
@@ -549,7 +549,7 @@ export default function ChatInterface() {
             <div className="pb-9">
               <Textarea
                 ref={textareaRef}
-                placeholder={isStreaming ? "Waiting for response..." : "Ask Anything"}
+                placeholder={isStreaming ? "Oczekiwanie na odpowiedź..." : "Zadaj pytanie..."}
                 className="min-h-[24px] max-h-[160px] w-full rounded-3xl border-0 bg-transparent text-gray-900 placeholder:text-gray-400 placeholder:text-base focus-visible:ring-0 focus-visible:ring-offset-0 text-base pl-2 pr-4 pt-0 pb-0 resize-none overflow-y-auto leading-tight"
                 value={inputValue}
                 onChange={handleInputChange}
