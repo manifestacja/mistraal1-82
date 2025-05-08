@@ -1,5 +1,4 @@
 
-import { useState } from "react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { MistralModelId } from "@/types/models";
 import { getMistralModels } from "@/services/mistralService";
@@ -23,10 +22,7 @@ export default function ModelSelector({ selectedModel, onModelChange }: ModelSel
       <SelectContent>
         {models.map((model) => (
           <SelectItem key={model.id} value={model.id} className="text-sm">
-            <div className="flex flex-col">
-              <span>{model.name}</span>
-              <span className="text-xs text-gray-500">{model.description}</span>
-            </div>
+            {model.name}
           </SelectItem>
         ))}
       </SelectContent>
