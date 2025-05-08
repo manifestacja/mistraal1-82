@@ -37,6 +37,19 @@ interface Message {
   model?: MistralModelId
 }
 
+interface MessageSection {
+  id: string;
+  messages: Message[];
+  isNewSection: boolean;
+  isActive?: boolean;
+  sectionIndex: number;
+}
+
+interface StreamingWord {
+  id: number;
+  text: string;
+}
+
 // Faster word delay for smoother streaming
 const WORD_DELAY = 40 // ms per word
 const CHUNK_SIZE = 2 // Number of words to add at once
