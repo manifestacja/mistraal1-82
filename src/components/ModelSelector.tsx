@@ -1,5 +1,6 @@
 
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Button } from "@/components/ui/button";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { MistralModelId } from "@/types/models";
 import { getMistralModels } from "@/services/mistralService";
 
@@ -10,22 +11,26 @@ interface ModelSelectorProps {
 
 export default function ModelSelector({ selectedModel, onModelChange }: ModelSelectorProps) {
   const models = getMistralModels();
+  const selectedModelName = models.find(model => model.id === selectedModel)?.name || selectedModel;
 
   return (
-    <Select 
-      value={selectedModel} 
-      onValueChange={(value) => onModelChange(value as MistralModelId)}
-    >
-      <SelectTrigger className="w-[180px] rounded-full border-gray-200 h-8 text-sm">
-        <SelectValue placeholder="Wybierz model" />
-      </SelectTrigger>
-      <SelectContent>
+    <DropdownMenu>
+      <DropdownMenuTrigger asChild>
+        <Button variant="ghost" className="h-8 rounded-full border-0 bg-transparent">
+          {selectedModelName}
+        </Button>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent align="end">
         {models.map((model) => (
-          <SelectItem key={model.id} value={model.id} className="text-sm">
+          <DropdownMenuItem 
+            key={model.id} 
+            onClick={() => onModelChange(model.id)}
+            className="text-sm cursor-pointer"
+          >
             {model.name}
-          </SelectItem>
+          </DropdownMenuItem>
         ))}
-      </SelectContent>
-    </Select>
+      </DropdownMenuContent>
+    </DropdownMenu>
   );
 }
