@@ -1,4 +1,3 @@
-
 "use client"
 
 import "ios-vibrator-pro-max"
@@ -26,7 +25,7 @@ import { cn } from "@/lib/utils"
 import ModelSelector from "./ModelSelector"
 import { MistralModelId } from "@/types/models"
 import { generateMistralResponse } from "@/services/mistralService"
-import { Message, MessageSection, StreamingWord } from "@/types/chat"
+import { Message, MessageSection, StreamingWord, MessageType } from "@/types/chat"
 import { addMessageToMemory, CURRENT_CONVERSATION_ID } from "@/services/chatMemoryService"
 
 type ActiveButton = "none" | "add" | "deepSearch" | "think" | "settings"
