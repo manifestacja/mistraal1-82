@@ -631,18 +631,18 @@ export default function ChatInterface() {
 
                 <Button
                   type="submit"
-                  variant="outline"
+                  variant="black" // Changed from "outline" to "black"
                   size="icon"
                   className={cn(
                     "rounded-full h-8 w-8 border-0 flex-shrink-0 transition-all duration-200",
-                    hasTyped ? "bg-black scale-110" : "bg-gray-200",
+                    hasTyped ? "scale-110" : ""
                   )}
                   disabled={!inputValue.trim() || isStreaming}
                 >
                   {isStreaming ? (
                     <LoaderCircle className="h-4 w-4 text-white animate-spin" />
                   ) : (
-                    <ArrowUp className={cn("h-4 w-4 transition-colors", hasTyped ? "text-white" : "text-gray-500")} />
+                    <ArrowUp className="h-4 w-4 text-white" /> // Text always white now
                   )}
                   <span className="sr-only">{isStreaming ? "Processing" : "Submit"}</span>
                 </Button>
