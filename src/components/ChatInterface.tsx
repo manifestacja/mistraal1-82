@@ -26,7 +26,7 @@ import ModelSelector from "./ModelSelector"
 import { MistralModelId } from "@/types/models"
 import { generateMistralResponse } from "@/services/mistralService"
 import { Message, MessageSection, StreamingWord, MessageType } from "@/types/chat"
-import { addMessageToMemory, CURRENT_CONVERSATION_ID } from "@/services/chatMemoryService"
+import { addMessageToMemory, getChatMemory, CURRENT_CONVERSATION_ID } from "@/services/chatMemoryService"
 
 type ActiveButton = "none" | "add" | "deepSearch" | "think" | "settings"
 
@@ -96,6 +96,14 @@ export default function ChatInterface() {
       window.removeEventListener("resize", checkMobileAndViewport)
     }
   }, [isMobile, viewportHeight])
+
+  // Initialize messages from chat memory
+  useEffect(() => {
+    const savedMessages = getChatMemory(CURRENT_CONVERSATION_ID);
+    if (savedMessages.length > 0) {
+      setMessages(savedMessages);
+    }
+  }, []);
 
   // Organize messages into sections
   useEffect(() => {

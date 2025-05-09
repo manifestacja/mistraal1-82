@@ -1,10 +1,40 @@
+
 import { Message, CURRENT_CONVERSATION_ID } from "@/types/chat";
 
 // The maximum number of messages to keep in memory per conversation
 const MAX_MEMORY_LENGTH = 10;
 
+// Local storage key for chat history
+const CHAT_STORAGE_KEY = "chat_memory";
+
 // In-memory storage for chat history (in a real app, this could be persisted to localStorage or a database)
 let chatMemory: Record<string, Message[]> = {};
+
+// Initialize chat memory from localStorage
+const initChatMemory = () => {
+  try {
+    const storedMemory = localStorage.getItem(CHAT_STORAGE_KEY);
+    if (storedMemory) {
+      chatMemory = JSON.parse(storedMemory);
+    }
+  } catch (error) {
+    console.error("Error loading chat memory from localStorage:", error);
+    // If there's an error, we'll start with empty memory
+    chatMemory = {};
+  }
+};
+
+// Call initialization on module load
+initChatMemory();
+
+// Save chat memory to localStorage
+const saveChatMemory = () => {
+  try {
+    localStorage.setItem(CHAT_STORAGE_KEY, JSON.stringify(chatMemory));
+  } catch (error) {
+    console.error("Error saving chat memory to localStorage:", error);
+  }
+};
 
 /**
  * Retrieves the chat history for a specific conversation
@@ -33,6 +63,9 @@ export const addMessageToMemory = (
       chatMemory[conversationId].length - MAX_MEMORY_LENGTH
     );
   }
+  
+  // Save to localStorage after each update
+  saveChatMemory();
 };
 
 /**
@@ -40,6 +73,7 @@ export const addMessageToMemory = (
  */
 export const clearChatMemory = (conversationId: string): void => {
   chatMemory[conversationId] = [];
+  saveChatMemory();
 };
 
 /**
