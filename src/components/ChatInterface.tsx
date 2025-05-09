@@ -76,6 +76,7 @@ export default function ChatInterface() {
   const shouldFocusAfterStreamingRef = useRef(false)
   const mainContainerRef = useRef<HTMLDivElement>(null)
   const [selectedModel, setSelectedModel] = useState<MistralModelId>("mistral-small-latest")
+  const [isLoading, setIsLoading] = useState(false)
   // Store selection state
   const selectionStateRef = useRef<{ start: number | null; end: number | null }>({ start: null, end: null })
 
@@ -334,6 +335,7 @@ export default function ChatInterface() {
     setStreamingWords([])
     setStreamingMessageId(null)
     setIsStreaming(false)
+    setIsLoading(false)
   }
 
   const handleInputChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
@@ -361,6 +363,9 @@ export default function ChatInterface() {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
     if (inputValue.trim() && !isStreaming) {
+      // Set loading state immediately
+      setIsLoading(true)
+      
       // Add vibration when message is submitted
       navigator.vibrate(50)
 
@@ -631,7 +636,7 @@ export default function ChatInterface() {
 
                 <Button
                   type="submit"
-                  variant="black" // Changed from "outline" to "black"
+                  variant="black"
                   size="icon"
                   className={cn(
                     "rounded-full h-8 w-8 border-0 flex-shrink-0 transition-all duration-200",
@@ -639,12 +644,12 @@ export default function ChatInterface() {
                   )}
                   disabled={!inputValue.trim() || isStreaming}
                 >
-                  {isStreaming ? (
+                  {isLoading || isStreaming ? (
                     <LoaderCircle className="h-4 w-4 text-white animate-spin" />
                   ) : (
-                    <ArrowUp className="h-4 w-4 text-white" /> // Text always white now
+                    <ArrowUp className="h-4 w-4 text-white" />
                   )}
-                  <span className="sr-only">{isStreaming ? "Processing" : "Submit"}</span>
+                  <span className="sr-only">{isLoading || isStreaming ? "Przetwarzanie" : "Wyślij"}</span>
                 </Button>
               </div>
             </div>
