@@ -83,6 +83,7 @@ export const formatChatMemoryForPrompt = (conversationId: string): string => {
   const messages = getChatMemory(conversationId);
   if (messages.length === 0) return "";
   
+  // Format jest dostosowany do potrzeb modelu Mistral - każda wiadomość ma oznaczonego nadawcę
   return messages
     .map((msg) => `${msg.type === "user" ? "Użytkownik" : "AI"}: ${msg.content}`)
     .join("\n\n");

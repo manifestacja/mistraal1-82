@@ -165,11 +165,40 @@ export const generateMistralResponse = async (
     throw new Error(`Model ${modelId} not found`);
   }
 
-  // Get conversation history to add context to the prompt
+  // Pobieramy historię konwersacji, aby dodać kontekst do zapytania
   const chatMemory = formatChatMemoryForPrompt(CURRENT_CONVERSATION_ID);
-  const contextualPrompt = chatMemory 
-    ? `Poniżej jest historia naszej konwersacji, weź ją pod uwagę odpowiadając:\n\n${chatMemory}\n\nOstatnie pytanie użytkownika: ${prompt}`
-    : prompt;
+  
+  // Konstruujemy wiadomości do API Mistral z uwzględnieniem historii konwersacji
+  const messages = [
+    {
+      role: "system",
+      content: SYSTEM_PROMPT
+    }
+  ];
+  
+  // Jeśli istnieje historia, przekształcamy ją w format wiadomości dla API
+  if (chatMemory) {
+    const historyLines = chatMemory.split("\n\n");
+    for (const line of historyLines) {
+      if (line.startsWith("Użytkownik: ")) {
+        messages.push({
+          role: "user",
+          content: line.substring("Użytkownik: ".length)
+        });
+      } else if (line.startsWith("AI: ")) {
+        messages.push({
+          role: "assistant",
+          content: line.substring("AI: ".length)
+        });
+      }
+    }
+  }
+  
+  // Dodajemy aktualne pytanie użytkownika
+  messages.push({
+    role: "user",
+    content: prompt
+  });
 
   try {
     const response = await fetch("https://api.mistral.ai/v1/chat/completions", {
@@ -180,16 +209,7 @@ export const generateMistralResponse = async (
       },
       body: JSON.stringify({
         model: modelId,
-        messages: [
-          {
-            role: "system",
-            content: SYSTEM_PROMPT
-          },
-          {
-            role: "user",
-            content: contextualPrompt
-          }
-        ],
+        messages: messages,
         temperature: 0.7,
         max_tokens: 800
       })
