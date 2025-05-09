@@ -1,5 +1,7 @@
 
 import { AIModel, MistralModelId } from "@/types/models";
+import { CURRENT_CONVERSATION_ID } from "@/types/chat";
+import { formatChatMemoryForPrompt } from "./chatMemoryService";
 
 const MODELS: AIModel[] = [
   {
@@ -127,6 +129,12 @@ export const generateMistralResponse = async (
     throw new Error(`Model ${modelId} not found`);
   }
 
+  // Get conversation history to add context to the prompt
+  const chatMemory = formatChatMemoryForPrompt(CURRENT_CONVERSATION_ID);
+  const contextualPrompt = chatMemory 
+    ? `Poniżej jest historia naszej konwersacji, weź ją pod uwagę odpowiadając:\n\n${chatMemory}\n\nOstatnie pytanie użytkownika: ${prompt}`
+    : prompt;
+
   try {
     const response = await fetch("https://api.mistral.ai/v1/chat/completions", {
       method: "POST",
@@ -143,7 +151,7 @@ export const generateMistralResponse = async (
           },
           {
             role: "user",
-            content: prompt
+            content: contextualPrompt
           }
         ],
         temperature: 0.7,

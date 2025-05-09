@@ -1,3 +1,4 @@
+
 "use client"
 
 import "ios-vibrator-pro-max"
@@ -25,31 +26,10 @@ import { cn } from "@/lib/utils"
 import ModelSelector from "./ModelSelector"
 import { MistralModelId } from "@/types/models"
 import { generateMistralResponse } from "@/services/mistralService"
+import { Message, MessageSection, StreamingWord } from "@/types/chat"
+import { addMessageToMemory, CURRENT_CONVERSATION_ID } from "@/services/chatMemoryService"
 
 type ActiveButton = "none" | "add" | "deepSearch" | "think" | "settings"
-type MessageType = "user" | "system"
-
-interface Message {
-  id: string
-  content: string
-  type: MessageType
-  completed?: boolean
-  newSection?: boolean
-  model?: MistralModelId
-}
-
-interface MessageSection {
-  id: string;
-  messages: Message[];
-  isNewSection: boolean;
-  isActive?: boolean;
-  sectionIndex: number;
-}
-
-interface StreamingWord {
-  id: number;
-  text: string;
-}
 
 // Faster word delay for smoother streaming
 const WORD_DELAY = 40 // ms per word
@@ -298,15 +278,17 @@ export default function ChatInterface() {
     const messageId = Date.now().toString()
     setStreamingMessageId(messageId)
 
-    setMessages((prev) => [
-      ...prev,
-      {
-        id: messageId,
-        content: "",
-        type: "system",
-        model: selectedModel,
-      },
-    ])
+    // Create the AI message
+    const aiMessage: Message = {
+      id: messageId,
+      content: "",
+      type: "system",
+      model: selectedModel,
+      timestamp: Date.now(),
+    }
+
+    // Add empty AI message to display
+    setMessages((prev) => [...prev, aiMessage])
 
     // Add a delay before the second vibration
     setTimeout(() => {
@@ -320,10 +302,20 @@ export default function ChatInterface() {
     // Stream the text
     await simulateTextStreaming(response)
 
-    // Update with complete message
+    // Update AI message with complete content
+    const completedAiMessage = {
+      ...aiMessage,
+      content: response,
+      completed: true,
+    }
+    
+    // Update messages with completed content
     setMessages((prev) =>
-      prev.map((msg) => (msg.id === messageId ? { ...msg, content: response, completed: true } : msg)),
+      prev.map((msg) => (msg.id === messageId ? completedAiMessage : msg)),
     )
+
+    // Add the completed AI message to memory
+    addMessageToMemory(CURRENT_CONVERSATION_ID, completedAiMessage)
 
     // Add to completed messages set to prevent re-animation
     setCompletedMessages((prev) => new Set(prev).add(messageId))
@@ -374,12 +366,17 @@ export default function ChatInterface() {
       // Add as a new section if messages already exist
       const shouldAddNewSection = messages.length > 0
 
-      const newUserMessage = {
+      // Create user message object
+      const newUserMessage: Message = {
         id: `user-${Date.now()}`,
         content: userMessage,
         type: "user" as MessageType,
         newSection: shouldAddNewSection,
+        timestamp: Date.now(),
       }
+
+      // Add user message to chat memory
+      addMessageToMemory(CURRENT_CONVERSATION_ID, newUserMessage)
 
       // Reset input before starting the AI response
       setInputValue("")
