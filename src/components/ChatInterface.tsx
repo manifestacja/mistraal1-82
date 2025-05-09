@@ -17,6 +17,7 @@ import {
   ThumbsUp,
   ThumbsDown,
   Settings,
+  LoaderCircle,
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Textarea } from "@/components/ui/textarea"
@@ -573,6 +574,7 @@ export default function ChatInterface() {
                     textareaRef.current.scrollIntoView({ behavior: "smooth", block: "center" })
                   }
                 }}
+                disabled={isStreaming}
               />
             </div>
 
@@ -637,8 +639,12 @@ export default function ChatInterface() {
                   )}
                   disabled={!inputValue.trim() || isStreaming}
                 >
-                  <ArrowUp className={cn("h-4 w-4 transition-colors", hasTyped ? "text-white" : "text-gray-500")} />
-                  <span className="sr-only">Submit</span>
+                  {isStreaming ? (
+                    <LoaderCircle className="h-4 w-4 text-white animate-spin" />
+                  ) : (
+                    <ArrowUp className={cn("h-4 w-4 transition-colors", hasTyped ? "text-white" : "text-gray-500")} />
+                  )}
+                  <span className="sr-only">{isStreaming ? "Processing" : "Submit"}</span>
                 </Button>
               </div>
             </div>
