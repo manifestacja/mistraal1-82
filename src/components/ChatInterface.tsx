@@ -520,7 +520,7 @@ export default function ChatInterface() {
             <span className="sr-only">Menu</span>
           </Button>
 
-          <h1 className="text-base font-medium text-gray-800">Mistraal</h1>
+          <h1 className="text-base font-medium text-gray-800 absolute left-1/2 transform -translate-x-1/2">Mistraal</h1>
 
           <div className="flex items-center gap-1">
             <ModelSelector selectedModel={selectedModel} onModelChange={setSelectedModel} />
